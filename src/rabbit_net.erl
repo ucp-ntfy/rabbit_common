@@ -109,7 +109,10 @@ ssl_get_socket(Sock) ->
     element(2, element(2, Sock)).
 
 ssl_info(Sock) when ?IS_SSL(Sock) ->
-    ssl_compat:connection_information(Sock);
+    Info = ssl:connection_information(Sock#ssl_socket.ssl),
+    Protocol = proplists:get_value(protocol, Info),
+    {KeyExchange, Cipher, Hash, _} = proplists:get_value(cipher_suite, Info),
+    {Protocol, {KeyExchange, Cipher, Hash}};
 ssl_info(_Sock) ->
     nossl.
 
