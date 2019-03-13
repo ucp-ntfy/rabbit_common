@@ -913,6 +913,21 @@ pget_or_die(K, P) ->
         V         -> V
     end.
 
+%% property merge
+pmerge(Key, Val, List) ->
+      case proplists:is_defined(Key, List) of
+              true -> List;
+              _    -> [{Key, Val} | List]
+      end.
+
+%% proplists merge
+plmerge(P1, P2) ->
+    dict:to_list(dict:merge(fun(_, V, _) ->
+                                V
+                            end,
+                            dict:from_list(P1),
+                            dict:from_list(P2))).
+
 pset(Key, Value, List) -> [{Key, Value} | proplists:delete(Key, List)].
 
 format_message_queue(_Opt, MQ) ->
@@ -988,7 +1003,7 @@ sequence_error([_ | Rest])               -> sequence_error(Rest).
 
 json_encode(Term) ->
     try
-        {ok, mochijson2:encode(Term)}
+        {ok, rabbit_common_mochijson2:encode(Term)}
     catch
         exit:{json_encode, E} ->
             {error, E}
@@ -996,7 +1011,7 @@ json_encode(Term) ->
 
 json_decode(Term) ->
     try
-        {ok, mochijson2:decode(Term)}
+        {ok, rabbit_common_mochijson2:decode(Term)}
     catch
         %% Sadly `mochijson2:decode/1' does not offer a nice way to catch
         %% decoding errors...
